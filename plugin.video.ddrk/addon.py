@@ -24,10 +24,16 @@ def show_airing():
     return items
 
 
-@plugin.route('/detail/<name>/')
+@plugin.route('/detail/<name>')
 def show_detail(name):
-    print('Show ' + name)
-    return []
+    items = ddrk.get_detail(name)
+    return items
+
+
+@plugin.route('/play')
+def play():
+    url = ddrk.get_play_url(plugin.request.args)
+    return plugin.set_resolved_url(url)
 
 
 if __name__ == '__main__':

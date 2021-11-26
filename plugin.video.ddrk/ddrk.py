@@ -1,8 +1,23 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import datetime
+import json
 import requests
 from bs4 import BeautifulSoup
+from base64 import b64encode
 from xbmcswift2 import xbmc
+from Crypto.Cipher import AES
+
+epoch = datetime.datetime.utcfromtimestamp(0)
+ukey = u'zevS%th@*8YWUm%K'.encode()
+iv = u'5080305495198718'.encode()
+
+def aes(obj):
+    s = json.dumps(obj)
+    cipher = AES.new(ukey, AES.MODE_CBC, iv=iv)
+    enc = cipher.encrypt(s.encode('UTF-8'))
+    return b64encode(enc).decode('UTF-8')
+
 
 class DDRK(object):
     def __init__(self, plugin):
@@ -10,9 +25,27 @@ class DDRK(object):
         self.__plugin = plugin
         self.__cache = plugin.get_storage('cache')
 
-    def get_airing(self):
-        return self.__get('/category/airing')
 
+    # 获取“热播中”
+    def get_airing(self):
+        soup = self.__get('/category/airing')
+        return self.__parse_articles(soup)
+
+    # 获取剧集播放列表
+    def get_detail(self, name):
+        soup = self.__get('/' + name + '/')
+        return self.__parse_playlist(soup)
+
+    # 获取视频播放地址
+    def get_play_url(self, args):
+        obj = {}
+        obj['path'] = args['src0']
+        obj['expire'] = ((datetime.datetime.now() - epoch).total_seconds() + 600) * 1000
+        url = aes(obj)
+        return url
+
+
+    # 从 style 的 backgroud-image 中分析图片地址
     @staticmethod
     def __parse_image(style):
         start = style.find('(')
@@ -20,9 +53,8 @@ class DDRK(object):
         return style[start + 1:end]
 
 
-    def __get(self, url):
-        r = requests.get(self.__baseurl + url);
-        soup = BeautifulSoup(r.text, 'html.parser')
+    # 分析页面上的剧集列表
+    def __parse_articles(self, soup):
         articles = soup.find_all('article')
         items = []
 
@@ -43,3 +75,30 @@ class DDRK(object):
             items.append(item)
 
         return items
+
+
+    def __parse_playlist(self, soup):
+        script = soup.find('script', class_='wp-playlist-script')
+        j = json.loads(script.string)
+        tracks = j['tracks']
+        items = [self.__track_to_item(track) for track in tracks]
+        return items
+
+
+    def __track_to_item(self, track):
+        item = {}
+        item['label'] = track['caption']
+        item['is_playable'] = True
+        item['path'] = self.__plugin.url_for('play',
+                srctype=track['srctype'],
+                src0=track['src0'],
+                src1=track['src1'],
+                src2=track['src2'],
+                src3=track['src3'])
+        return item
+
+
+    # 获取网页 soup
+    def __get(self, url):
+        r = requests.get(self.__baseurl + url);
+        return BeautifulSoup(r.text, 'html.parser')
