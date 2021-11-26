@@ -10,19 +10,27 @@ ddrk = DDRK(plugin)
 
 @plugin.route('/')
 def index():
-    items = [{
-        'label': u'热映中',
-        'path': plugin.url_for('show_airing'),
-    }]
+    items = [
+        {
+            'label': u'热映中',
+            'path': plugin.url_for('show_airing'),
+        },
+        {
+            'label': u'站长推荐',
+            'path': plugin.url_for('show_recommend'),
+        },
+    ]
 
     return items
 
 
-@plugin.route('/airing')
+@plugin.cached_route('/airing')
 def show_airing():
-    items = ddrk.get_airing()
-    return items
+    return ddrk.get_airing()
 
+@plugin.cached_route('/recommend')
+def show_recommend():
+    return ddrk.get_recommend()
 
 @plugin.route('/detail/<name>')
 def show_detail(name):

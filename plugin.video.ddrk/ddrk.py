@@ -30,7 +30,12 @@ class DDRK(object):
 
     # 获取“热播中”
     def get_airing(self):
-        soup = self.__get('/category/airing')
+        soup = self.__get('/category/airing/')
+        return self.__parse_articles(soup)
+
+    # 站长推荐
+    def get_recommend(self):
+        soup = self.__get('/tag/recommend/')
         return self.__parse_articles(soup)
 
     # 获取剧集播放列表
