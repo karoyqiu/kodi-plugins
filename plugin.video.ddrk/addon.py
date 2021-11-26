@@ -45,23 +45,23 @@ def show_dramas():
     items = [
         {
             'label': u'欧美剧',
-            'path': plugin.url_for('show_category', main='drama', sub='western-drama')
+            'path': plugin.url_for('show_category_first', main='drama', sub='western-drama')
         },
         {
             'label': u'日剧',
-            'path': plugin.url_for('show_category', main='drama', sub='jp-drama')
+            'path': plugin.url_for('show_category_first', main='drama', sub='jp-drama')
         },
         {
             'label': u'韩剧',
-            'path': plugin.url_for('show_category', main='drama', sub='kr-drama')
+            'path': plugin.url_for('show_category_first', main='drama', sub='kr-drama')
         },
         {
             'label': u'华语剧',
-            'path': plugin.url_for('show_category', main='drama', sub='cn-drama')
+            'path': plugin.url_for('show_category_first', main='drama', sub='cn-drama')
         },
         {
             'label': u'其他地区',
-            'path': plugin.url_for('show_category', main='drama', sub='other')
+            'path': plugin.url_for('show_category_first', main='drama', sub='other')
         },
     ]
 
@@ -72,36 +72,68 @@ def show_movies():
     items = [
         {
             'label': u'全部',
-            'path': plugin.url_for('show_category_all', main='movie')
+            'path': plugin.url_for('show_category_all_first', main='movie')
         },
         {
             'label': u'欧美电影',
-            'path': plugin.url_for('show_category', main='movie', sub='western-movie')
+            'path': plugin.url_for('show_category_first', main='movie', sub='western-movie')
         },
         {
             'label': u'日韩电影',
-            'path': plugin.url_for('show_category', main='movie', sub='asian-movie')
+            'path': plugin.url_for('show_category_first', main='movie', sub='asian-movie')
         },
         {
             'label': u'华语电影',
-            'path': plugin.url_for('show_category', main='movie', sub='chinese-movie')
+            'path': plugin.url_for('show_category_first', main='movie', sub='chinese-movie')
         },
         {
             'label': u'豆瓣电影 Top250',
-            'path': plugin.url_for('show_tag', tag='douban-top250')
+            'path': plugin.url_for('show_tag', tag='douban-top250', page='1')
         },
     ]
 
     return items
 
-@plugin.route('/category/<main>', name='show_category_all')
-@plugin.route('/category/<main>/<sub>')
-def show_category(main, sub=''):
-    return ddrk.get_category(main, sub)
+@plugin.cached_route('/category/<main>', name='show_category_all_first')
+@plugin.cached_route('/category/<main>/<page>', name='show_category_all')
+@plugin.cached_route('/category/<main>/<sub>', name='show_category_first')
+@plugin.cached_route('/category/<main>/<sub>/<page>')
+def show_category(main, sub='', page='1'):
+    page = int(page)
+    items, next_page = ddrk.get_category(main, sub, page)
 
-@plugin.route('/tag/<tag>')
-def show_tag(tag):
-    return ddrk.get_tag(tag)
+    if page > 1:
+        items.insert(0, {
+            'label': u'<< 上一页',
+            'path': plugin.url_for('show_category', main=main, sub=sub, page=str(page - 1))
+        })
+
+    if next_page:
+        items.append({
+            'label': u'下一页 >>',
+            'path': plugin.url_for('show_category', main=main, sub=sub, page=str(page + 1))
+        })
+
+    return items
+
+@plugin.cached_route('/tag/<tag>/<page>')
+def show_tag(tag, page='1'):
+    page = int(page)
+    items, next_page = ddrk.get_tag(tag, page)
+
+    if page > 1:
+        items.insert(0, {
+            'label': u'<< 上一页',
+            'path': plugin.url_for('show_tag', tag=tag, page=str(page - 1))
+        })
+
+    if next_page:
+        items.append({
+            'label': u'下一页 >>',
+            'path': plugin.url_for('show_tag', tag=tag, page=str(page + 1))
+        })
+
+    return items
 
 @plugin.route('/detail/<name>')
 def show_detail(name):

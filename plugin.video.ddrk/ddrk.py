@@ -37,19 +37,31 @@ class DDRK(object):
         return self.get_tag('recommend')
 
     # 类别
-    def get_category(self, main, sub):
+    def get_category(self, main, sub, page):
         path = '/category/' + main + '/'
 
         if (sub != ''):
             path = path + sub + '/'
 
+        if (page > 1):
+            path = path + 'page/' + str(page) + '/'
+
         soup = self.__get(path)
-        return self.__parse_articles(soup)
+        items = self.__parse_articles(soup)
+        next_page = DDRK.__parse_next_page(soup)
+        return items, next_page
 
     # 标签
-    def get_tag(self, tag):
-        soup = self.__get('/tag/' + tag + '/')
-        return self.__parse_articles(soup)
+    def get_tag(self, tag, page):
+        path = '/tag/' + tag + '/'
+
+        if (page > 1):
+            path = path + 'page/' + str(page) + '/'
+
+        soup = self.__get(path)
+        items = self.__parse_articles(soup)
+        next_page = DDRK.__parse_next_page(soup)
+        return items, next_page
 
 
     # 获取剧集播放列表
@@ -118,6 +130,10 @@ class DDRK(object):
 
         return items
 
+    @staticmethod
+    def __parse_next_page(soup):
+        node = soup.find('a', class_='next')
+        return node != None
 
     def __parse_playlist(self, soup):
         script = soup.find('script', class_='wp-playlist-script')
