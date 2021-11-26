@@ -5,8 +5,10 @@ import json
 import requests
 from bs4 import BeautifulSoup
 from base64 import b64encode
+from urllib2 import quote
 from xbmcswift2 import xbmc
 from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
 
 epoch = datetime.datetime.utcfromtimestamp(0)
 ukey = u'zevS%th@*8YWUm%K'.encode()
@@ -15,7 +17,7 @@ iv = u'5080305495198718'.encode()
 def aes(obj):
     s = json.dumps(obj)
     cipher = AES.new(ukey, AES.MODE_CBC, iv=iv)
-    enc = cipher.encrypt(s.encode('UTF-8'))
+    enc = cipher.encrypt(pad(s.encode('UTF-8'), AES.block_size))
     return b64encode(enc).decode('UTF-8')
 
 
@@ -23,7 +25,7 @@ class DDRK(object):
     def __init__(self, plugin):
         self.__baseurl = 'https://ddrk.me'
         self.__plugin = plugin
-        self.__cache = plugin.get_storage('cache')
+        self.__videoserver = 'https://v3.ddrk.me:19443'
 
 
     # 获取“热播中”
@@ -38,12 +40,33 @@ class DDRK(object):
 
     # 获取视频播放地址
     def get_play_url(self, args):
-        obj = {}
-        obj['path'] = args['src0']
-        obj['expire'] = ((datetime.datetime.now() - epoch).total_seconds() + 600) * 1000
-        url = aes(obj)
+        methods = {
+            '0': self.__get_video_url_0,
+            '1': self.__get_video_url_1,
+            '3': self.__get_video_url_0,
+            '4': self.__get_video_url_4,
+        }
+
+        method = methods.get(args['srctype'])
+        url = method(args)
         return url
 
+
+    def __get_video_url_0(self, args):
+        obj = {}
+        obj['path'] = args['src0']
+        obj['expire'] = '{:.0f}'.format(((datetime.datetime.now() - epoch).total_seconds() + 600) * 1000)
+        vid = quote(aes(obj))
+        url = self.__videoserver + '/video?id=' + vid + '&type=mix'
+        r = requests.get(url);
+        j = json.loads(r.text)
+        return j['url']
+
+    def __get_video_url_1(self, args):
+        return 'https://w.ddrk.me' + args['src0'] + '?ddrkey=' + args['src2']
+
+    def __get_video_url_4(self, args):
+        return args['src0']
 
     # 从 style 的 backgroud-image 中分析图片地址
     @staticmethod

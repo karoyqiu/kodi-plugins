@@ -32,7 +32,12 @@ def show_detail(name):
 
 @plugin.route('/play')
 def play():
-    url = ddrk.get_play_url(plugin.request.args)
+    args = {}
+
+    for attr, value in plugin.request.args.iteritems():
+        args[attr] = value[0]
+
+    url = ddrk.get_play_url(args)
     return plugin.set_resolved_url(url)
 
 
