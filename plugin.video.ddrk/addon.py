@@ -27,6 +27,14 @@ def index():
             'label': u'电影',
             'path': plugin.url_for('show_movies'),
         },
+        {
+            'label': u'新番',
+            'path': plugin.url_for('show_category_first', main='anime', sub='new-bangumi'),
+        },
+        {
+            'label': u'类别',
+            'path': plugin.url_for('show_categories'),
+        },
     ]
 
     return items
@@ -93,6 +101,54 @@ def show_movies():
     ]
 
     return items
+
+@plugin.route('/categories')
+def show_categories():
+    items = [
+        {
+            'label': u'动画',
+            'path': plugin.url_for('show_category_all_first', main='anime')
+        },
+        {
+            'label': u'动作',
+            'path': plugin.url_for('show_tag', tag='action', page='1')
+        },
+        {
+            'label': u'喜剧',
+            'path': plugin.url_for('show_tag', tag='comedy', page='1')
+        },
+        {
+            'label': u'爱情',
+            'path': plugin.url_for('show_tag', tag='romance', page='1')
+        },
+        {
+            'label': u'科幻',
+            'path': plugin.url_for('show_tag', tag='sci-fi', page='1')
+        },
+        {
+            'label': u'犯罪',
+            'path': plugin.url_for('show_tag', tag='crime', page='1')
+        },
+        {
+            'label': u'悬疑',
+            'path': plugin.url_for('show_tag', tag='mystery', page='1')
+        },
+        {
+            'label': u'恐怖',
+            'path': plugin.url_for('show_tag', tag='horror', page='1')
+        },
+        {
+            'label': u'纪录片',
+            'path': plugin.url_for('show_category_all_first', main='documentary')
+        },
+        {
+            'label': u'综艺',
+            'path': plugin.url_for('show_category_all_first', main='variety')
+        },
+    ]
+
+    return items
+
 
 @plugin.cached_route('/category/<main>', name='show_category_all_first')
 @plugin.cached_route('/category/<main>/<page>', name='show_category_all')
