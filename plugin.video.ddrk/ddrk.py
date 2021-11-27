@@ -3,6 +3,8 @@
 import datetime
 import json
 import requests
+import tempfile
+import zlib
 from bs4 import BeautifulSoup
 from base64 import b64encode
 from urllib2 import quote
@@ -11,8 +13,8 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 
 epoch = datetime.datetime.utcfromtimestamp(0)
-ukey = u'zevS%th@*8YWUm%K'.encode()
-iv = u'5080305495198718'.encode()
+ukey = b'zevS%th@*8YWUm%K'
+iv = b'5080305495198718'
 
 
 def aes(obj):
@@ -22,11 +24,21 @@ def aes(obj):
     return b64encode(enc).decode('UTF-8')
 
 
+def ddr(dd):
+    key = dd[:16]
+    enc = dd[16:]
+    cipher = AES.new(key, AES.MODE_CBC, iv=key)
+    dec = cipher.decrypt(enc)
+    uz = zlib.decompress(dec, 47)
+    return uz
+
+
 class DDRK(object):
     def __init__(self, plugin):
         self.__baseurl = 'https://ddrk.me'
         self.__plugin = plugin
         self.__videoserver = 'https://v3.ddrk.me:19443'
+        self.__zimuoss = 'https://ddrk.oss-accelerate.aliyuncs.com'
 
     # 类别
     def get_category(self, main, sub, page):
@@ -72,7 +84,19 @@ class DDRK(object):
 
         method = methods.get(args['srctype'])
         url = method(args)
-        return url
+        suburl = None
+
+        if 'subsrc' in args:
+            subsrc = args['subsrc']
+
+            if subsrc:
+                r = requests.get(self.__zimuoss + subsrc)
+                sub = ddr(r.content)
+                t = tempfile.NamedTemporaryFile(delete=False)
+                t.write(sub)
+                suburl = t.name
+
+        return url, suburl
 
     def __get_video_url_0(self, args):
         obj = {}
@@ -143,7 +167,8 @@ class DDRK(object):
                                              src0=track['src0'],
                                              src1=track['src1'],
                                              src2=track['src2'],
-                                             src3=track['src3'])
+                                             src3=track['src3'],
+                                             subsrc=track['subsrc'])
         return item
 
     # 获取网页 soup

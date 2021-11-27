@@ -175,7 +175,7 @@ def show_tag(tag, page='1'):
     return items
 
 
-@plugin.cached_route('/detail/<name>')
+@plugin.route('/detail/<name>')
 def show_detail(name):
     items = ddrk.get_detail(name)
     return items
@@ -188,8 +188,8 @@ def play():
     for attr, value in plugin.request.args.iteritems():
         args[attr] = value[0]
 
-    url = ddrk.get_play_url(args)
-    return plugin.set_resolved_url(url)
+    url, sub = ddrk.get_play_url(args)
+    return plugin.set_resolved_url(url, sub)
 
 
 if __name__ == '__main__':
