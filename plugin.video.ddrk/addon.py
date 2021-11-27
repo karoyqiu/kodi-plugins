@@ -13,11 +13,11 @@ def index():
     items = [
         {
             'label': u'热映中',
-            'path': plugin.url_for('show_airing'),
+            'path': plugin.url_for('show_category_all_first', main='airing'),
         },
         {
             'label': u'站长推荐',
-            'path': plugin.url_for('show_recommend'),
+            'path': plugin.url_for('show_tag', tag='recommend', page='1'),
         },
         {
             'label': u'剧集',
@@ -39,14 +39,6 @@ def index():
 
     return items
 
-
-@plugin.cached_route('/airing')
-def show_airing():
-    return ddrk.get_airing()
-
-@plugin.cached_route('/recommend')
-def show_recommend():
-    return ddrk.get_recommend()
 
 @plugin.route('/dramas')
 def show_dramas():
@@ -75,6 +67,7 @@ def show_dramas():
 
     return items
 
+
 @plugin.route('/movies')
 def show_movies():
     items = [
@@ -101,6 +94,7 @@ def show_movies():
     ]
 
     return items
+
 
 @plugin.route('/categories')
 def show_categories():
@@ -158,12 +152,6 @@ def show_category(main, sub='', page='1'):
     page = int(page)
     items, next_page = ddrk.get_category(main, sub, page)
 
-    if page > 1:
-        items.insert(0, {
-            'label': u'<< 上一页',
-            'path': plugin.url_for('show_category', main=main, sub=sub, page=str(page - 1))
-        })
-
     if next_page:
         items.append({
             'label': u'下一页 >>',
@@ -172,16 +160,11 @@ def show_category(main, sub='', page='1'):
 
     return items
 
+
 @plugin.cached_route('/tag/<tag>/<page>')
 def show_tag(tag, page='1'):
     page = int(page)
     items, next_page = ddrk.get_tag(tag, page)
-
-    if page > 1:
-        items.insert(0, {
-            'label': u'<< 上一页',
-            'path': plugin.url_for('show_tag', tag=tag, page=str(page - 1))
-        })
 
     if next_page:
         items.append({
@@ -191,7 +174,8 @@ def show_tag(tag, page='1'):
 
     return items
 
-@plugin.route('/detail/<name>')
+
+@plugin.cached_route('/detail/<name>')
 def show_detail(name):
     items = ddrk.get_detail(name)
     return items

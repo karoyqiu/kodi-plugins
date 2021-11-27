@@ -14,6 +14,7 @@ epoch = datetime.datetime.utcfromtimestamp(0)
 ukey = u'zevS%th@*8YWUm%K'.encode()
 iv = u'5080305495198718'.encode()
 
+
 def aes(obj):
     s = json.dumps(obj)
     cipher = AES.new(ukey, AES.MODE_CBC, iv=iv)
@@ -26,15 +27,6 @@ class DDRK(object):
         self.__baseurl = 'https://ddrk.me'
         self.__plugin = plugin
         self.__videoserver = 'https://v3.ddrk.me:19443'
-
-
-    # 获取“热播中”
-    def get_airing(self):
-        return self.get_category('airing', '')
-
-    # 站长推荐
-    def get_recommend(self):
-        return self.get_tag('recommend')
 
     # 类别
     def get_category(self, main, sub, page):
@@ -63,8 +55,8 @@ class DDRK(object):
         next_page = DDRK.__parse_next_page(soup)
         return items, next_page
 
-
     # 获取剧集播放列表
+
     def get_detail(self, name):
         soup = self.__get('/' + name + '/')
         return self.__parse_playlist(soup)
@@ -82,14 +74,14 @@ class DDRK(object):
         url = method(args)
         return url
 
-
     def __get_video_url_0(self, args):
         obj = {}
         obj['path'] = args['src0']
-        obj['expire'] = '{:.0f}'.format(((datetime.datetime.now() - epoch).total_seconds() + 600) * 1000)
+        obj['expire'] = '{:.0f}'.format(
+            ((datetime.datetime.now() - epoch).total_seconds() + 600) * 1000)
         vid = quote(aes(obj))
         url = self.__videoserver + '/video?id=' + vid + '&type=mix'
-        r = requests.get(url);
+        r = requests.get(url)
         j = json.loads(r.text)
         return j['url']
 
@@ -106,8 +98,8 @@ class DDRK(object):
         end = style.find(')', start)
         return style[start + 1:end]
 
-
     # 分析页面上的剧集列表
+
     def __parse_articles(self, soup):
         articles = soup.find_all('article')
         items = []
@@ -142,21 +134,20 @@ class DDRK(object):
         items = [self.__track_to_item(track) for track in tracks]
         return items
 
-
     def __track_to_item(self, track):
         item = {}
         item['label'] = track['caption']
         item['is_playable'] = True
         item['path'] = self.__plugin.url_for('play',
-                srctype=track['srctype'],
-                src0=track['src0'],
-                src1=track['src1'],
-                src2=track['src2'],
-                src3=track['src3'])
+                                             srctype=track['srctype'],
+                                             src0=track['src0'],
+                                             src1=track['src1'],
+                                             src2=track['src2'],
+                                             src3=track['src3'])
         return item
 
-
     # 获取网页 soup
+
     def __get(self, url):
-        r = requests.get(self.__baseurl + url);
+        r = requests.get(self.__baseurl + url)
         return BeautifulSoup(r.text, 'html.parser')
