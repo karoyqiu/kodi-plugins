@@ -29,6 +29,11 @@ jobs:
         with:
           python-version: '2.x'
 
+      - name: 清理
+        run: |
+          rm -rf _repo
+          rm -rf karoyqiu.kodi.repo
+
       - name: 生成库
         run: ./generate_repo.py
         working-directory: _tools
