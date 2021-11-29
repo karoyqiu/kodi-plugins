@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addons>
-<addon id="plugin.video.ddrk" name="低端影视" version="0.3" provider-name="Roy QIU">
+<addon id="plugin.video.agefans" name="agefans" version="0.1" provider-name="Roy QIU">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.xbmcswift2" version="2.4.0"/>
     <import addon="script.module.requests" version="2.19.1"/>
-    <import addon="script.module.beautifulsoup4" version="4.5.3"/>
-    <import addon="script.module.pycryptodome" version="3.4.3"/>
   </requires>
   <extension point="xbmc.python.pluginsource" library="addon.py">
     <provides>video</provides>
@@ -14,10 +12,10 @@
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
     <language></language>
-    <summary>低端影视</summary>
-    <description>提供最便捷的，同时支持电脑和移动设备的超清画质在线观看影视剧体验。</description>
+    <summary>AGE 动漫</summary>
+    <description>AGE 动漫专注于资源收集整理 海量的有效的高质量的动漫资源下载 动漫百度网盘下载</description>
     <assets>
-        <icon>icon.png</icon>
+      <icon>icon.png</icon>
     </assets>
   </extension>
 </addon>
@@ -39,11 +37,13 @@
     </extension>
 </addon>
 
-<addon id="plugin.video.agefans" name="agefans" version="0.1" provider-name="Roy QIU">
+<addon id="plugin.video.ddrk" name="低端影视" version="0.3" provider-name="Roy QIU">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.xbmcswift2" version="2.4.0"/>
     <import addon="script.module.requests" version="2.19.1"/>
+    <import addon="script.module.beautifulsoup4" version="4.5.3"/>
+    <import addon="script.module.pycryptodome" version="3.4.3"/>
   </requires>
   <extension point="xbmc.python.pluginsource" library="addon.py">
     <provides>video</provides>
@@ -51,10 +51,10 @@
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
     <language></language>
-    <summary>AGE 动漫</summary>
-    <description>AGE 动漫专注于资源收集整理 海量的有效的高质量的动漫资源下载 动漫百度网盘下载</description>
+    <summary>低端影视</summary>
+    <description>提供最便捷的，同时支持电脑和移动设备的超清画质在线观看影视剧体验。</description>
     <assets>
-      <icon>icon.png</icon>
+        <icon>icon.png</icon>
     </assets>
   </extension>
 </addon>
