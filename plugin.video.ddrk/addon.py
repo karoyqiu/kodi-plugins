@@ -175,9 +175,10 @@ def show_tag(tag, page='1'):
     return items
 
 
-@plugin.route('/detail/<name>')
-def show_detail(name):
-    items = ddrk.get_detail(name)
+@plugin.route('/detail/<name>/<page>')
+def show_detail(name, page='1'):
+    page = int(page)
+    items = ddrk.get_detail(name, page)
     return items
 
 

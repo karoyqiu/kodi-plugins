@@ -68,10 +68,14 @@ class DDRK(object):
         return items, next_page
 
     # 获取剧集播放列表
+    def get_detail(self, name, page):
+        path = '/' + name + '/'
 
-    def get_detail(self, name):
-        soup = self.__get('/' + name + '/')
-        return self.__parse_playlist(soup)
+        if (page != 1):
+            path = path + str(page) + '/'
+
+        soup = self.__get(path)
+        return self.__parse_playlist(name, soup)
 
     # 获取视频播放地址
     def get_play_url(self, args):
@@ -123,7 +127,6 @@ class DDRK(object):
         return style[start + 1:end]
 
     # 分析页面上的剧集列表
-
     def __parse_articles(self, soup):
         articles = soup.find_all('article')
         items = []
@@ -140,7 +143,8 @@ class DDRK(object):
 
             href = article['data-href']
             href = href[len(self.__baseurl) + 1:-1]
-            item['path'] = self.__plugin.url_for('show_detail', name=href)
+            item['path'] = self.__plugin.url_for(
+                'show_detail', name=href, page='1')
 
             items.append(item)
 
@@ -148,15 +152,25 @@ class DDRK(object):
 
     @staticmethod
     def __parse_next_page(soup):
+        # type (BeautifulSoup) -> bool
         node = soup.find('a', class_='next')
         return node != None
 
-    def __parse_playlist(self, soup):
+    def __parse_playlist(self, name, soup):
         script = soup.find('script', class_='wp-playlist-script')
         j = json.loads(script.string)
         tracks = j['tracks']
         items = [self.__track_to_item(track) for track in tracks]
-        return items
+
+        links = soup.find('div', class_='page-links')
+        prefix = links.contents[0].string
+        n = prefix.find(':')
+        prefix = prefix[:n]
+
+        link_items = [self.__page_link_to_item(name, prefix, a)
+                      for a in links.find_all('a')]
+
+        return items + link_items
 
     def __track_to_item(self, track):
         item = {}
@@ -171,8 +185,19 @@ class DDRK(object):
                                              subsrc=track['subsrc'])
         return item
 
-    # 获取网页 soup
+    def __page_link_to_item(self, name, prefix, link):
+        item = {}
+        page = link['href'].split('/')[-2]
 
+        if (not page.isdigit()):
+            page = '1'
+
+        item['label'] = prefix + ': ' + link.string
+        item['path'] = self.__plugin.url_for(
+            'show_detail', name=name, page=page)
+        return item
+
+    # 获取网页 soup
     def __get(self, url):
         r = requests.get(self.__baseurl + url)
         return BeautifulSoup(r.text, 'html.parser')
