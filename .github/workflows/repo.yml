@@ -30,7 +30,8 @@ jobs:
           python-version: '2.x'
 
       - name: 生成库
-        run: ./_tools/generate_repo.py
+        run: ./generate_repo.py
+        working-directory: _tools
 
       - name: 提交
         run: |
