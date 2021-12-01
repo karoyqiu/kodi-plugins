@@ -28,7 +28,7 @@ def ddr(dd):
     key = dd[:16]
     enc = dd[16:]
     cipher = AES.new(key, AES.MODE_CBC, iv=key)
-    dec = cipher.decrypt(enc)
+    dec = cipher.decrypt(pad(enc, AES.block_size))
     uz = zlib.decompress(dec, 47)
     return uz
 
@@ -95,10 +95,12 @@ class DDRK(object):
 
             if subsrc:
                 r = requests.get(self.__zimuoss + subsrc)
-                sub = ddr(r.content)
-                t = tempfile.NamedTemporaryFile(delete=False)
-                t.write(sub)
-                suburl = t.name
+
+                if r.status_code == 200:
+                    sub = ddr(r.content)
+                    t = tempfile.NamedTemporaryFile(delete=False)
+                    t.write(sub)
+                    suburl = t.name
 
         return url, suburl
 
@@ -163,14 +165,17 @@ class DDRK(object):
         items = [self.__track_to_item(track) for track in tracks]
 
         links = soup.find('div', class_='page-links')
-        prefix = links.contents[0].string
-        n = prefix.find(':')
-        prefix = prefix[:n]
 
-        link_items = [self.__page_link_to_item(name, prefix, a)
-                      for a in links.find_all('a')]
+        if links:
+            prefix = links.contents[0].string
+            n = prefix.find(':')
+            prefix = prefix[:n]
 
-        return items + link_items
+            link_items = [self.__page_link_to_item(name, prefix, a)
+                          for a in links.find_all('a')]
+            items = items + link_items
+
+        return items
 
     def __track_to_item(self, track):
         item = {}
