@@ -29,6 +29,11 @@ jobs:
         with:
           python-version: '2.x'
 
+      - name: 清理
+        run: |
+          rm -rf _repo
+          rm -rf karoyqiu.kodi.repo
+
       - name: 生成库
         run: ./generate_repo.py
         working-directory: _tools
@@ -37,7 +42,8 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -m "[bot] 自动生成库" -a
+          git add .
+          git commit -m "[bot] 自动生成库"
 
       - name: 推送
         uses: ad-m/github-push-action@master
