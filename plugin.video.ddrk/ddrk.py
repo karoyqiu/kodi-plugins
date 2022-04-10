@@ -105,11 +105,12 @@ class DDRK(object):
         return url, suburl
 
     def __get_video_url_0(self, args):
-        obj = {}
-        obj['path'] = args['src0']
-        obj['expire'] = '{:.0f}'.format(
-            ((datetime.datetime.now() - epoch).total_seconds() + 600) * 1000)
-        vid = quote(aes(obj))
+        # obj = {}
+        # obj['path'] = args['src0']
+        # obj['expire'] = '{:.0f}'.format(
+        #     ((datetime.datetime.now() - epoch).total_seconds() + 600) * 1000)
+        # vid = quote(aes(obj))
+        vid = args['src1']
         url = self.__videoserver + '/video?id=' + vid + '&type=mix'
         r = requests.get(url)
         j = json.loads(r.text)
