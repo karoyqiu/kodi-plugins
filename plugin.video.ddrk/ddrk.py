@@ -37,8 +37,9 @@ class DDRK(object):
     def __init__(self, plugin):
         self.__baseurl = 'https://ddrk.me'
         self.__plugin = plugin
-        self.__videoserver = 'https://v3.ddrk.me:19443'
         self.__zimuoss = 'https://ddrk.oss-accelerate.aliyuncs.com'
+        self.__s = requests.Session()
+        self.__cf = ''
 
     # 类别
     def get_category(self, main, sub, page):
@@ -75,6 +76,7 @@ class DDRK(object):
             path = path + str(page) + '/'
 
         soup = self.__get(path)
+        self.__get('/cdn-cgi/challenge-platform/h/g/cv/result/' + self.__cf)
         return self.__parse_playlist(name, soup)
 
     # 获取视频播放地址
@@ -94,7 +96,7 @@ class DDRK(object):
             subsrc = args['subsrc']
 
             if subsrc:
-                r = requests.get(self.__zimuoss + subsrc)
+                r = self.__s.get(self.__zimuoss + subsrc)
 
                 if r.status_code == 200:
                     sub = ddr(r.content)
@@ -111,8 +113,9 @@ class DDRK(object):
         #     ((datetime.datetime.now() - epoch).total_seconds() + 600) * 1000)
         # vid = quote(aes(obj))
         vid = args['src1']
-        url = self.__videoserver + '/video?id=' + vid + '&type=mix'
-        r = requests.get(url)
+        url = 'https://ddrk.me/getvddr/video?id=' + vid + '&type=mix'
+        r = self.__s.get(url)
+        print(r.text)
         j = json.loads(r.text)
         return j['url']
 
@@ -205,5 +208,15 @@ class DDRK(object):
 
     # 获取网页 soup
     def __get(self, url):
-        r = requests.get(self.__baseurl + url)
+        headers = {}
+
+        if (self.__cf):
+            headers['cf-ray'] = self.__cf
+
+        r = self.__s.get(self.__baseurl + url, headers=headers)
+        cf = r.headers.get('cf-ray')
+
+        if (cf):
+            self.__cf = cf[:-4]
+
         return BeautifulSoup(r.text, 'html.parser')
